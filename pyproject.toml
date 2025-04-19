@@ -3,5 +3,8 @@ name = "ai-tinkerers"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.12.2"
+dependencies = [
+    "a2a-min>=0.1.0",
+    "crewai[tools]>=0.95.0",
+]

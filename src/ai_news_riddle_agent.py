@@ -1,0 +1,85 @@
+from crewai import Agent, Crew, LLM, Task
+from crewai.process import Process
+from crewai_tools import SerplyWebSearchTool
+from dotenv import load_dotenv
+from pydantic import BaseModel
+
+
+class AINewsHeadlines(BaseModel):
+    headlines: list[str]
+    descriptions: list[str]
+    dates: list[str]
+
+class AINewsRiddle(BaseModel):
+    riddle: str
+    answer: str
+    hint: str
+
+class AINewsRiddleAgent:
+    """
+    An agent that searches the web for the latest AI news and creates riddles based on them.    
+    """
+
+    def __init__(self, model_name: str = "gpt-4.1-nano-2025-04-14"):
+        self.model_name = model_name
+        self.web_search_tool = SerplyWebSearchTool()
+    
+    self.ai_news_search_agent = Agent(
+        role = 'AI News Curator',
+        goal = (
+            "Generate a list of the 5 most relevant AI updates that have occurred " 
+            "in the past 24 hours."
+        ),
+        backstory = (
+            "You are an experienced AI content creator, with a deep understanding of AI "
+            "and its applications. You have a keen eye for the latest developments in "
+            "the field and are always looking for new and innovative ways to present "
+            "AI news and updates."
+        ),
+        llm = LLM(model_name=self.model_name),
+        tools = [self.web_search_tool],
+    )
+    
+    self.riddle_agent = Agent(
+        role = 'Riddle Creator',
+        goal = (
+            "Create a riddle based on the presented AI news. The answer to the riddle "
+            "should be the main subject that the news deals with."
+            "Your response should be a json object with three keys: 'riddle', 'answer', and 'hint'."
+        ),
+        backstory = (
+           "You are an expert at creating fun riddles."
+        ),
+        llm = LLM(model_name=self.model_name),
+    )
+
+    ai_news_search_task = Task(
+        description="Generate a list of the 5 most relevant AI updates that have occurred in the past 24 hours.",
+        expected_output="A list of 5 AI news headlines.",
+        agent = self.ai_news_search_agent,
+        output_pydantic=AINewsHeadlines,
+    )
+
+    riddle_task = Task(
+        description=("Create a riddle based on the presented AI news."
+            "The answer to the riddle should be the main subject that the news deals with."
+        ),
+        expected_output="A riddle and its answer.",
+        agent = self.riddle_agent,
+        output_pydantic=AINewsRiddle,
+    )
+
+    self.crew: Crew = Crew(
+        agents = [self.ai_news_search_agent, self.riddle_agent],
+        tasks = [ai_news_search_task, riddle_task],
+        verbose=True,
+    )
+
+if __name__ == "__main__":
+    # Load environment variables from .env file
+    load_dotenv()
+    # Create an instance of AINewsRiddleAgent
+    agent = AINewsRiddleAgent()
+    # Run the crew
+    result = agent.crew().kickoff()
+    print(result.raw)
