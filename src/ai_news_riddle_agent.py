@@ -17,7 +17,7 @@ class AINewsRiddle(BaseModel):
 
 class AINewsRiddleAgent:
     """
-    An agent that searches the web for the latest AI news and creates riddles based on them.    
+    An agent that searches the web for the latest AI news, given a topic and creates riddles based on them.    
     """
 
     def __init__(self, model_name: str = "gpt-4.1-nano"):
@@ -28,7 +28,7 @@ class AINewsRiddleAgent:
             role = 'AI News Curator',
             goal = (
                 "Generate a list of the 5 most relevant AI updates that have occurred " 
-                "in the past 24 hours."
+                "in the past 24 hours about {{topic}}. "
             ),
             backstory = (
                 "You are an experienced AI content creator, with a deep understanding of AI "
@@ -54,7 +54,7 @@ class AINewsRiddleAgent:
         )
 
         ai_news_search_task = Task(
-            description="Generate a list of the 5 most relevant AI updates that have occurred in the past 24 hours.",
+            description=f"Generate a list of the 5 most relevant AI updates that have occurred in the past 24 hours about {{topic}}.",
             expected_output="A list of 5 AI news headlines.",
             agent = self.ai_news_search_agent,
             output_pydantic=AINewsHeadlines,
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     # Create an instance of AINewsRiddleAgent
     agent = AINewsRiddleAgent()
     # Run the crew
-    result = agent.crew.kickoff()
+    result = agent.crew.kickoff({"topic": "quantization"})
     print(result.raw)

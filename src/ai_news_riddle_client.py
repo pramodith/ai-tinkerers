@@ -11,12 +11,16 @@ OPENAI_MODEL = "gpt-4.1-nano"
 
 # Riddle server endpoint (assuming it's running locally)
 RIDDLE_SERVER_URL = "http://localhost:8000/"  # Adjust if needed
-
+client = A2aMinClient.connect(RIDDLE_SERVER_URL)
 # Helper: Detect if user is asking for a riddle
 def is_riddle_request(message: str) -> bool:
     triggers = ["riddle", "puzzle", "give me a riddle", "ai riddle"]
-    return any(trigger in message.lower() for trigger in triggers)
-
+    if any(trigger in message.lower() for trigger in triggers):
+        extract_topic_message = [{"role": "user", "content": f"Extract the topic from the message. {message}"}]
+        topic = get_openai_response(extract_topic_message)
+        return topic
+    return ""
+     
 # Call riddle server
 async def get_riddle_from_server(message: str):
     try:
@@ -31,7 +35,7 @@ async def get_riddle_from_server(message: str):
         return f"[Could not reach riddle server: {e}]"
 
 # Call OpenAI GPT-4.1-nano
-def get_openai_response(message: str):
+async def get_openai_response(message: str):
     try:
         completion = openai.chat.completions.create(
             model=OPENAI_MODEL,
@@ -41,11 +45,18 @@ def get_openai_response(message: str):
     except Exception as e:
         return f"[OpenAI API error: {e}]"
 
-def chatbot_fn(message, history):
-    if is_riddle_request(message):
-        return asyncio.run(get_riddle_from_server(message))
-    else:
-        return get_openai_response(message)
+async def chatbot_fn(message, history):
+    topic = is_riddle_request(message)
+    if topic:
+        task = await client.send_message(topic)    
+        # Print the response
+        if task.artifacts:
+            artifact = task.artifacts[-1]
+            part = artifact.parts[-1]
+            if hasattr(part, "text"):
+                return part.text
+        else:
+            return get_openai_response(message)
 
 with gr.Blocks() as demo:
     gr.Markdown("# AI Chatbot (GPT-4.1-nano)\nAsk anything, or request a riddle!")
@@ -54,7 +65,7 @@ with gr.Blocks() as demo:
     clear = gr.Button("Clear")
 
     def respond(user_message, chat_history):
-        response = chatbot_fn(user_message, chat_history)
+        response = asyncio.wait_for(chatbot_fn(user_message, chat_history))
         chat_history = chat_history + [[user_message, response]]
         return "", chat_history
 

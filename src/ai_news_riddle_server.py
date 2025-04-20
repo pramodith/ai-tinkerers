@@ -64,7 +64,11 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
     
     def invoke(self, query: str, session_id: str) -> AgentInvocationResult:
         agent = AINewsRiddleAgent()
-        return agent.crew.kickoff(query)
+        response = agent.crew.kickoff({"topic": query})
+        agent_response = AgentInvocationResult.agent_msg(
+            response.raw,
+        )
+        return agent_response
         
 if __name__ == "__main__":
     # Start the AINewsRiddleAgent server
