@@ -14,15 +14,30 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
 
     def __init__(self):
         super().__init__()
-        self.name = self.__class__.__name__
-        self.description = self.__class__.__doc__
-        self.supported_content_types = ["text"]
-        self.capabilities = AgentCapabilities(
+
+    @property
+    def name(self):
+        return self.__class__.__name__
+
+    @property
+    def description(self):
+        return self.__class__.__doc__
+
+    @property
+    def supported_content_types(self):
+        return ["text"]
+
+    @property
+    def capabilities(self):
+        return AgentCapabilities(
             streaming=True,
             pushNotifications=False,
             stateTransitionHistory=False
         )
-        self.skills = [
+
+    @property
+    def skills(self):
+        return [
             AgentSkill(
                 id=f"{self.name.lower()}_skill",
                 name=self.name,
