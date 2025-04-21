@@ -1,3 +1,4 @@
+from a2a_min.middleware import LoggingMiddleware
 from a2a_min import AgentAdapter, A2aMinServer, AgentInvocationResult
 from a2a_min.base.types import (
     AgentAuthentication,
@@ -72,4 +73,4 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
         
 if __name__ == "__main__":
     # Start the AINewsRiddleAgent server
-    A2aMinServer.from_agent(AINewsRiddleAgentAdapter()).start()
+    A2aMinServer.from_agent(AINewsRiddleAgentAdapter(), middlewares=[LoggingMiddleware()]).start()

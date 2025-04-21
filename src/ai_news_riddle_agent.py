@@ -54,7 +54,8 @@ class AINewsRiddleAgent:
         )
 
         ai_news_search_task = Task(
-            description=f"Generate a list of the 5 most relevant AI updates that have occurred in the past 24 hours about {{topic}}.",
+            description=f"Generate a list of the 5 most relevant AI updates that have occurred in the past 24 hours about {{topic}},"\
+                "using the provided web search tool.",
             expected_output="A list of 5 AI news headlines.",
             agent = self.ai_news_search_agent,
             output_pydantic=AINewsHeadlines,

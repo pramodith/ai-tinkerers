@@ -4,6 +4,9 @@ import openai
 
 from a2a_min import A2aMinClient
 from dotenv import load_dotenv
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,10 +56,11 @@ async def chatbot_fn(message, history):
             artifact = task.artifacts[-1]
             part = artifact.parts[-1]
             if hasattr(part, "text"):
-                return part.text
-        return await get_openai_response([{ "role": "user", "content": message }])
+                response = part.text
+        return response, task.id, task.sessionId
     else:
-        return await get_openai_response([{ "role": "user", "content": message }])
+        response = await get_openai_response([{ "role": "user", "content": message }])
+        return response, None, None
 
 with gr.Blocks() as demo:
     gr.Markdown("# AI Chatbot (GPT-4.1-nano)\nAsk anything, or request a riddle!")
@@ -65,7 +69,9 @@ with gr.Blocks() as demo:
     clear = gr.Button("Clear")
 
     async def respond(user_message, chat_history):
-        response = await chatbot_fn(user_message, chat_history)
+        response, task_id, session_id = await chatbot_fn(user_message, chat_history)
+        if task_id and session_id:
+            response = f"Task ID: {task_id}, Session ID: {session_id}\n{response}"
         chat_history = chat_history + [[user_message, response]]
         return "", chat_history
 
