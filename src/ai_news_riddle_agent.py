@@ -23,6 +23,7 @@ class AINewsRiddleAgent:
     def __init__(self, model_name: str = "gpt-4.1-nano"):
         self.model_name = model_name
         self.web_search_tool = SerperDevTool()
+        self.llm = LLM(model=self.model_name)
     
         self.ai_news_search_agent = Agent(
             role = 'AI News Curator',
@@ -36,7 +37,7 @@ class AINewsRiddleAgent:
                 "the field and are always looking for new and innovative ways to present "
                 "AI news and updates."
             ),
-            llm = LLM(model=self.model_name),
+            llm = self.llm,
             tools = [self.web_search_tool],
         )
         
@@ -50,7 +51,7 @@ class AINewsRiddleAgent:
             backstory = (
             "You are an expert at creating fun riddles."
             ),
-            llm = LLM(model=self.model_name),
+            llm = self.llm,
         )
 
         ai_news_search_task = Task(
@@ -73,7 +74,7 @@ class AINewsRiddleAgent:
         self.crew: Crew = Crew(
             agents = [self.ai_news_search_agent, self.riddle_agent],
             tasks = [ai_news_search_task, riddle_task],
-            verbose=True,
+            verbose=False,
     )
 
 if __name__ == "__main__":
@@ -82,5 +83,8 @@ if __name__ == "__main__":
     # Create an instance of AINewsRiddleAgent
     agent = AINewsRiddleAgent()
     # Run the crew
+    agent.llm.stream = True
     result = agent.crew.kickoff({"topic": "quantization"})
-    print(result.raw)
+    for part in result:
+        print(part)
+        print("\n\n")

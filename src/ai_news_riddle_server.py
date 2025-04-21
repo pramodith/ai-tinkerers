@@ -8,14 +8,16 @@ from a2a_min.base.types import (
 )
 from ai_news_riddle_agent import AINewsRiddleAgent
 
+import asyncio
+
 class AINewsRiddleAgentAdapter(AgentAdapter):
     """
     An agent that creates riddles based on the latest AI news.
     """
-
     def __init__(self):
+        self.agent = AINewsRiddleAgent()
         super().__init__()
-
+    
     @property
     def name(self):
         return self.__class__.__name__
@@ -64,12 +66,39 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
         )
     
     def invoke(self, query: str, session_id: str) -> AgentInvocationResult:
-        agent = AINewsRiddleAgent()
-        response = agent.crew.kickoff({"topic": query})
+        self.agent.llm.stream = False
+        response = self.agent.crew.kickoff({"topic": query})
         agent_response = AgentInvocationResult.agent_msg(
             response.raw,
         )
         return agent_response
+    
+    async def async_invoke(self, query: str) -> AgentInvocationResult:
+        return await self.agent.crew.kickoff_async({"topic": query})
+    
+    async def stream(self, query: str, session_id: str):
+        """Stream a response to a query.
+        
+        Default implementation yields the invoke result.
+        
+        Args:
+            query: The user's query.
+            session_id: A unique identifier for the session.
+            
+        Yields:
+            AgentInvocationResult objects containing parts of the agent's response.
+        """
+        self.agent.llm.stream = True
+        response = await self.async_invoke(query)
+        response = response.raw
+        for word in response.split():
+            result = AgentInvocationResult.agent_msg(f"{word} ")
+            result.is_complete = False
+            yield result
+            await asyncio.sleep(0.05)
+        response = AgentInvocationResult.agent_msg(response)
+        response.is_complete = True
+        yield response
         
 if __name__ == "__main__":
     # Start the AINewsRiddleAgent server
