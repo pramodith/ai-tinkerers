@@ -18,25 +18,22 @@ class AINewsRiddle(BaseModel):
 
 class AINewsRiddleAgent:
     """
-    An agent that searches the web for the latest AI news, given a topic and creates riddles based on them.
+    An agent that searches the web for the latest news, given a topic and creates riddles based on them.
     """
 
-    def __init__(self, model_name: str = "gpt-4.1-nano"):
+    def __init__(self, model_name: str = "gpt-4.1-mini"):
         self.model_name = model_name
         self.web_search_tool = SerperDevTool()
         self.llm = LLM(model=self.model_name)
 
-        self.ai_news_search_agent = Agent(
+        self.news_search_agent = Agent(
             role="AI News Curator",
             goal=(
-                "Generate a list of the 5 most relevant AI updates that have occurred "
+                "Generate a list of the 5 most relevant news updates that have occurred "
                 "in the past 24 hours about {{topic}}. "
             ),
             backstory=(
-                "You are an experienced AI content creator, with a deep understanding of AI "
-                "and its applications. You have a keen eye for the latest developments in "
-                "the field and are always looking for new and innovative ways to present "
-                "AI news and updates."
+                "You are a content creator that finds the most interesting and fun news updates."
             ),
             llm=self.llm,
             tools=[self.web_search_tool],
@@ -45,7 +42,7 @@ class AINewsRiddleAgent:
         self.riddle_agent = Agent(
             role="Riddle Creator",
             goal=(
-                "Create a riddles for each of the presented AI news headlines. The answer to the riddle "
+                "Create a riddles for each of the presented news headlines and descriptions. The answer to the riddle "
                 "should be the main subject that the news deals with."
                 "Your response for should be a json object with three keys: 'riddles', 'answers', and 'hints'."
             ),
@@ -53,11 +50,11 @@ class AINewsRiddleAgent:
             llm=self.llm,
         )
 
-        ai_news_search_task = Task(
-            description="Generate a list of the 5 most relevant AI updates that have occurred in the past 24 hours about {topic},"
+        news_search_task = Task(
+            description="Generate a list of the 5 most relevant news updates that have occurred in the past 24 hours about {topic},"
             "using the provided web search tool.",
-            expected_output="A list of 5 AI news headlines.",
-            agent=self.ai_news_search_agent,
+            expected_output="A list of 5 news headlines, descriptions, and dates.",
+            agent=self.news_search_agent,
             output_pydantic=AINewsHeadlines,
         )
 
@@ -72,8 +69,8 @@ class AINewsRiddleAgent:
         )
 
         self.crew: Crew = Crew(
-            agents=[self.ai_news_search_agent, self.riddle_agent],
-            tasks=[ai_news_search_task, riddle_task],
+            agents=[self.news_search_agent, self.riddle_agent],
+            tasks=[news_search_task, riddle_task],
             verbose=False,
         )
 
@@ -84,8 +81,8 @@ if __name__ == "__main__":
     # Create an instance of AINewsRiddleAgent
     agent = AINewsRiddleAgent()
     # Run the crew
-    agent.llm.stream = True
-    result = agent.crew.kickoff({"topic": "quantization"})
+    agent.llm.stream = False
+    result = agent.crew.kickoff({"topic": "tarrifs"})
     for part in result:
         print(part)
         print("\n\n")

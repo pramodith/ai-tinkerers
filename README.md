@@ -15,9 +15,21 @@ A playground for experimenting with Google A2A (Agent-to-Agent) patterns, agent 
   - `a2a_min_subscribe_task_manager.py`, `a2a_min_subscribe_client.py`
 - **Description:** Shows how a client can register a callback URL to receive asynchronous notifications from the server when tasks complete. Illustrates non-blocking task execution and HTTP callbacks.
 
-### 3. Advanced AI News Riddle Agent
-- **Files:** `ai_news_riddle_agent.py`, `ai_news_riddle_server.py`, `ai_news_riddle_client.py`, `gradio_app.py`
-- **Description:** A more complex agent that generates AI news riddles using LLMs, web search, and streaming. Supports both streaming and non-streaming modes in the UI.
+### 3. Advanced News Riddle Agent
+- **Files:** `news_riddle_agent.py`, `news_riddle_server.py`, `news_riddle_client.py`, `gradio_app.py`
+- **Description:**
+    - An advanced agent that generates riddles based on the latest news headlines, not just AI news. It uses LLMs and a web search tool to find recent news, then creates riddles and answers for them.
+    - The agent is composed of two sub-agents: a news search agent and a riddle creation agent. The workflow is orchestrated via a CrewAI `Crew` object with two tasks: one for news search, one for riddle creation.
+    - Example usage (from `news_riddle_agent.py`):
+      ```python
+      agent = AINewsRiddleAgent()
+      agent.llm.stream = False
+      result = agent.crew.kickoff({"topic": "tarrifs"})
+      for part in result:
+          print(part)
+      ```
+    - The agent and tasks are now more general ("news" not just "AI news").
+    - Supports both streaming and non-streaming LLM output.
 
 ## Setup
 1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)

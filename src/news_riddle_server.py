@@ -5,7 +5,7 @@ from a2a_min.base.types import (
     AgentCapabilities,
     AgentSkill,
 )
-from ai_news_riddle_agent import AINewsRiddleAgent
+from news_riddle_agent import AINewsRiddleAgent
 
 import asyncio
 

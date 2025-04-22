@@ -2,7 +2,7 @@ import gradio as gr
 import json
 from openai import AsyncOpenAI
 
-from ai_news_riddle_client import AINewsRiddleClient
+from news_riddle_client import AINewsRiddleClient
 from dotenv import load_dotenv
 from logging import getLogger
 
