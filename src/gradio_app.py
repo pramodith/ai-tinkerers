@@ -16,15 +16,23 @@ OPENAI_MODEL = "gpt-4.1-nano"
 RIDDLE_SERVER_URL = "http://localhost:8000/"  # Adjust if needed
 client = AINewsRiddleClient.connect(RIDDLE_SERVER_URL)
 openai_client = AsyncOpenAI()
+
+
 # Helper: Detect if user is asking for a riddle
 async def is_riddle_request(message: str) -> str:
     triggers = ["riddle", "puzzle", "give me a riddle", "ai riddle"]
     if any(trigger in message.lower() for trigger in triggers):
-        extract_topic_message = [{"role": "user", "content": f"Extract the topic from the message. {message}"}]
+        extract_topic_message = [
+            {
+                "role": "user",
+                "content": f"Extract the topic from the message. {message}",
+            }
+        ]
         topic = await get_openai_response(extract_topic_message)
         return topic
     return ""
-     
+
+
 # Call riddle server
 async def get_riddle_from_server(message: str):
     try:
@@ -37,12 +45,11 @@ async def get_riddle_from_server(message: str):
     except Exception as e:
         return f"[Could not reach riddle server: {e}]"
 
+
 async def stream_openai_response(messages):
     try:
         response = await openai_client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=messages,
-            stream=True
+            model=OPENAI_MODEL, messages=messages, stream=True
         )
         async for chunk in response:
             if chunk and len(chunk.choices) > 0:
@@ -50,17 +57,17 @@ async def stream_openai_response(messages):
     except Exception as e:
         yield f"[OpenAI API error: {e}]"
 
+
 # Call OpenAI GPT-4.1-nano
 async def get_openai_response(messages):
     try:
         completion = await openai_client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=messages,
-            stream=False
+            model=OPENAI_MODEL, messages=messages, stream=False
         )
         return completion.choices[0].message.content.strip()
     except Exception as e:
         return f"[OpenAI API error: {e}]"
+
 
 async def chatbot_fn(message, history):
     topic = await is_riddle_request(message)
@@ -73,15 +80,15 @@ async def chatbot_fn(message, history):
                 response = part.text
         return response, task.id, task.sessionId
     else:
-        response = await get_openai_response([{ "role": "user", "content": message }])
+        response = await get_openai_response([{"role": "user", "content": message}])
         return response, None, None
+
 
 async def stream_chatbot_fn(message):
     topic = await is_riddle_request(message)
     if topic:
         print(f"Topic: {topic}")
         async for update in client.send_message_streaming(topic):
-            
             if update.artifact and update.artifact.parts:
                 artifact = update.artifact.parts[0]
                 if artifact and hasattr(artifact, "text") and update.status:
@@ -90,8 +97,11 @@ async def stream_chatbot_fn(message):
                         break
                     yield artifact.text
     else:
-        async for partial_response in stream_openai_response([{ "role": "user", "content": message }]):
+        async for partial_response in stream_openai_response(
+            [{"role": "user", "content": message}]
+        ):
             yield partial_response
+
 
 with gr.Blocks() as demo:
     gr.Markdown("# AI Chatbot (GPT-4.1-nano)\nAsk anything, or request a riddle!")
@@ -99,7 +109,7 @@ with gr.Blocks() as demo:
     msg = gr.Textbox(label="Your message")
     clear = gr.Button("Clear")
     do_stream = gr.Checkbox(label="Stream response", value=False)
-    
+
     async def respond(user_message, chat_history, do_stream):
         if do_stream:
             response = ""
@@ -118,7 +128,7 @@ with gr.Blocks() as demo:
             response, task_id, session_id = await chatbot_fn(user_message, chat_history)
             if task_id and session_id:
                 response = f"Task ID: {task_id}, Session ID: {session_id}\n{response}"
-        
+
         chat_history = chat_history + [[user_message, response]]
         yield "", chat_history
 
