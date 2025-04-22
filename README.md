@@ -1,4 +1,4 @@
-# ai-tinkerers
+# ai-tinkerers-a2a-demo
 
 A playground for experimenting with Google A2A (Agent-to-Agent) patterns, agent adapters, streaming, and push notification/callback workflows in Python.
 
