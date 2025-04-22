@@ -9,7 +9,6 @@ import asyncio
 # 1. Start a FastAPI app to receive notifications
 app = FastAPI()
 
-
 @app.post("/notify")
 async def notify(request: Request):
     data = await request.json()
@@ -31,9 +30,7 @@ async def start_client():
     push_notification_config = TaskPushNotificationConfig(
         id=task_id, pushNotificationConfig=PushNotificationConfig(url=NOTIFY_URL)
     )
-    response = await client._client.set_task_callback(push_notification_config)
-    print(response)
-
+    await client._client.set_task_callback(push_notification_config)
     print(f"Client registered with notification callback: {NOTIFY_URL}")
 
 

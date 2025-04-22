@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class A2aMinSubscribeTaskManager(A2aMinTaskManager):
+    """
+    A custom task manager that extends the default task manager to support task notifications.
+    """
     def __init__(self, agent: AgentAdapter):
         super().__init__(agent)
 
@@ -28,6 +31,7 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
         Returns:
             A response containing the result of the task.
         """
+        # Add the task to the store
         await self.upsert_task(request.params)
         task = await self.update_store(
             request.params.id, TaskStatus(state=TaskState.SUBMITTED), None
@@ -36,15 +40,23 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
         # Non-blocking call to start the task
         asyncio.create_task(self.start_task(request))
         return SendTaskResponse(id=request.id, result=task)
+      
 
     async def start_task(self, request: SendTaskRequest) -> None:
+        """
+        Starts the task by calling the agent's invoke method.
+        Once the task is complete the result is sent to the client's notification
+        url.
+        """
         logger.info(f"Starting task {request.params.id}")
+        # Update task status to Working
         await self.update_store(
             request.params.id, TaskStatus(state=TaskState.WORKING), None
         )
-
+        # Get the user query
         query = self._get_user_query(request.params)
-
+        
+        # Call the agent's invoke method
         try:
             agent_result = self.agent.invoke(query, request.params.sessionId)
 
@@ -58,14 +70,18 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
             else:
                 task_status = TaskStatus(state=TaskState.COMPLETED)
                 artifact = Artifact(parts=agent_result.message.parts)
-
+            
+            # Update task status
             task = await self.update_store(
                 request.params.id, task_status, None if artifact is None else [artifact]
             )
-
+            
+            # Append task history
             task_result = self.append_task_history(task, request.params.historyLength)
+            # Get the notification config
             notif_config = await self.get_push_notification_info(request.params.id)
             if notif_config:
+                # Send the notification
                 await self.send_notification(request.params.id, artifact)
             else:
                 return SendTaskResponse(id=request.id, result=task_result)

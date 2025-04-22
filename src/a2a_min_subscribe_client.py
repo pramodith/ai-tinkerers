@@ -46,5 +46,7 @@ class A2aMinSubscribeClient(A2aMinClient):
             acceptedOutputModes=accepted_output_modes,
         )
 
+        # Non-blocking call to create a new task
         create_task(self._client.send_task(params))
+        # Return the task id to allow the client to subscribe for notifications
         return task_id

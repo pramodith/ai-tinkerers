@@ -6,8 +6,10 @@ from a2a_min_subscribe_task_manager import A2aMinSubscribeTaskManager
 from typing import Optional, List
 import time
 
-
 class A2AMinSubscribeServer(A2aMinServer):
+    """
+    Updates the from_agent function to use the custom task manager.
+    """
     def __init__(
         self,
         server: A2AServer,
