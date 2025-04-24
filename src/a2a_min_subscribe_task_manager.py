@@ -5,6 +5,7 @@ from a2a_min.base.types import (
     TaskStatus,
     TaskState,
     Artifact,
+    PushNotificationConfig
 )
 from a2a_min.agent_adapter import AgentAdapter
 
@@ -105,3 +106,32 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
                 logger.warning(
                     f"Error during sending push-notification for URL {url}: {e}"
                 )
+    
+    async def set_push_notification_info(self, task_id: str, notification_config: PushNotificationConfig):
+        async with self.lock:
+            for _ in range(10):
+                task = self.tasks.get(task_id)
+                if task is None:
+                    await asyncio.sleep(1)
+                else:
+                    break
+
+            if task is None:
+                raise ValueError(f"Task: {task_id} not found.")
+            
+            self.push_notification_infos[task_id] = notification_config
+
+        return
+
+    async def get_push_notification_info(self, task_id: str) -> PushNotificationConfig:
+        async with self.lock:
+            for _ in range(3):
+                task = self.tasks.get(task_id)
+                if task is None:
+                    await asyncio.sleep(1)
+
+            if task is None:
+                raise ValueError(f"Task: {task_id} not found.")
+
+            return self.push_notification_infos[task_id]
+            

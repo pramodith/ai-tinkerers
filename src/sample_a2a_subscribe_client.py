@@ -5,7 +5,10 @@ from a2a_min.base.types import TaskPushNotificationConfig, PushNotificationConfi
 import threading
 import time
 import asyncio
+import logging
 
+logging.basicConfig(level=logging.INFO)  # or INFO, or ERROR
+logger = logging.getLogger(__name__)
 # 1. Start a FastAPI app to receive notifications
 app = FastAPI()
 
@@ -24,12 +27,13 @@ async def start_client():
 
     # Connect and register notification callback
     client = A2aMinSubscribeClient.connect(SERVER_URL)
-    print("Client connected to server")
+    logger.info("Client connected to server")
     task_id = await client.send_message("Hello, Echo Agent!")
-    print(f"Task ID: {task_id}")
+    logger.info(f"Task ID: {task_id}")
     push_notification_config = TaskPushNotificationConfig(
         id=task_id, pushNotificationConfig=PushNotificationConfig(url=NOTIFY_URL)
     )
+    logger.info("Configuring a Notification Url.")
     await client._client.set_task_callback(push_notification_config)
     print(f"Client registered with notification callback: {NOTIFY_URL}")
 

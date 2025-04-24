@@ -5,6 +5,9 @@ from openai import AsyncOpenAI
 from news_riddle_client import AINewsRiddleClient
 from dotenv import load_dotenv
 from logging import getLogger
+import logging
+
+logging.basicConfig(level=logging.WARNING)  # or INFO, or ERROR
 
 logger = getLogger(__name__)
 
@@ -14,6 +17,7 @@ OPENAI_MODEL = "gpt-4.1"
 
 # Riddle server endpoint (assuming it's running locally)
 RIDDLE_SERVER_URL = "http://localhost:8000/"  # Adjust if needed
+logger.warning("Getting the Agent Card!")
 client = AINewsRiddleClient.connect(RIDDLE_SERVER_URL)
 openai_client = AsyncOpenAI()
 
@@ -72,8 +76,10 @@ async def get_openai_response(messages):
 
 async def chatbot_fn(message, history):
     topic = await is_riddle_request(message)
+    logger.warning("Creating a new task!")
     if topic:
         task = await client.send_message(topic)
+        logger.warning(f"Created Task : {task}")
         if task.artifacts:
             artifact = task.artifacts[-1]
             part = artifact.parts[-1]
@@ -88,7 +94,7 @@ async def chatbot_fn(message, history):
 async def stream_chatbot_fn(message):
     topic = await is_riddle_request(message)
     if topic:
-        print(f"Topic: {topic}")
+        logger.warning("Creating a new task!")
         async for update in client.send_message_streaming(topic):
             if update.artifact and update.artifact.parts:
                 artifact = update.artifact.parts[0]
@@ -122,7 +128,6 @@ with gr.Blocks() as demo:
 
         if do_stream:
             response = ""
-            print("in do stream")
             async for partial_response in stream_chatbot_fn(user_message):
                 if partial_response:
                     response += partial_response
