@@ -15,4 +15,24 @@ async def client():
 
 if __name__ == "__main__":
     # Run the client
-    asyncio.run(client())
+    #asyncio.run(client())
+    string = """
+    {
+    "riddles": [
+        "I wear red and white with pride on the field, in London I stand as my foes yield. With goals and hopes my team moves ahead, which club am I, by many widely led?",
+        "In Premier and Champions League fights, I make lineup decisions and monitor rights—A leader's voice amid hopes and strife, who am I managing this football life?",
+        "A warrior in red, whose contract's in doubt, pondering his stay, fans buzz and shout. Whose future at Emirates might shift and sway, who is this player contemplating away?"
+    ],
+    "answers": [
+        "Arsenal Football Club",
+        "Mikel Arteta",
+        "An Arsenal star player"
+    ],
+    "hints": [
+        "This club is famous for its red and white kit and London base.",
+        "He leads the team and makes strategic choices on and off the pitch.",
+        "This figure is vital to the team's success and currently has uncertain contract status."
+    ]
+}"""
+    import json
+    print(json.loads(string))

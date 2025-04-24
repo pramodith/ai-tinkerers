@@ -21,7 +21,7 @@ class AINewsRiddleAgent:
     An agent that searches the web for the latest news, given a topic and creates riddles based on them.
     """
 
-    def __init__(self, model_name: str = "gpt-4.1-mini"):
+    def __init__(self, model_name: str = "gpt-4.1"):
         self.model_name = model_name
         self.web_search_tool = SerperDevTool()
         self.llm = LLM(model=self.model_name)
@@ -43,7 +43,7 @@ class AINewsRiddleAgent:
             role="Riddle Creator",
             goal=(
                 "Create a riddles for each of the presented news headlines and descriptions. The answer to the riddle "
-                "should be the main subject that the news deals with."
+                "should be deduced from the headline and description clearly showing how it is based on the latest news."
                 "Your response for should be a json object with three keys: 'riddles', 'answers', and 'hints'."
             ),
             backstory=("You are an expert at creating fun riddles."),
@@ -61,7 +61,7 @@ class AINewsRiddleAgent:
         riddle_task = Task(
             description=(
                 "Create a riddle based on the presented AI news."
-                "The answer to the riddle should be the main subject that the news deals with."
+                "The answer to the riddle should be deduced from the headline and description clearly showing how it is based on the latest news."
             ),
             expected_output="A riddle and its answer.",
             agent=self.riddle_agent,
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     agent = AINewsRiddleAgent()
     # Run the crew
     agent.llm.stream = False
-    result = agent.crew.kickoff({"topic": "tarrifs"})
+    result = agent.crew.kickoff({"topic": "Arsenal F.C."})
     for part in result:
         print(part)
         print("\n\n")

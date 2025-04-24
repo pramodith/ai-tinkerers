@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
-OPENAI_MODEL = "gpt-4.1-nano"
+OPENAI_MODEL = "gpt-4.1"
 
 # Riddle server endpoint (assuming it's running locally)
 RIDDLE_SERVER_URL = "http://localhost:8000/"  # Adjust if needed
@@ -25,7 +25,8 @@ async def is_riddle_request(message: str) -> str:
         extract_topic_message = [
             {
                 "role": "user",
-                "content": f"Extract the topic from the message. {message}",
+                "content": f"Extract the topic from the message. {message} and do nothing else. "\
+                "Do not include any additional words beyond the topic.",
             }
         ]
         topic = await get_openai_response(extract_topic_message)
@@ -105,17 +106,20 @@ async def stream_chatbot_fn(message):
 def format_riddle(riddles: list):
     formatted_responses = ""
     for riddle, answer, hint in zip(riddles["riddles"], riddles["answers"], riddles["hints"]):
-        formatted_responses += f"{riddle}\nAnswer: {answer}\nHint: {hint}\n\n"
+        formatted_responses += f"Riddle: {riddle}\nAnswer: {answer}\nHint: {hint}\n\n"
     return formatted_responses.rstrip()
 
 with gr.Blocks() as demo:
-    gr.Markdown("# AI Chatbot (GPT-4.1-nano)\nAsk anything, or request a riddle!")
+    gr.Markdown("# Riddler \nAsk anything, or request a riddle!")
     chatbot = gr.Chatbot()
     msg = gr.Textbox(label="Your message")
     clear = gr.Button("Clear")
     do_stream = gr.Checkbox(label="Stream response", value=False)
 
     async def respond(user_message, chat_history, do_stream):
+        task_id = None
+        session_id = None
+
         if do_stream:
             response = ""
             print("in do stream")
@@ -123,20 +127,21 @@ with gr.Blocks() as demo:
                 if partial_response:
                     response += partial_response
                     chat_history_display = chat_history + [[user_message, response]]
-                    yield "", chat_history_display
-            
+                    yield "", chat_history_display         
         else:
             response, task_id, session_id = await chatbot_fn(user_message, chat_history)
-            if task_id and session_id:
-                response = f"Task ID: {task_id}, Session ID: {session_id}\n{response}"
-
+            
         try:
             response = response.strip()
             response = json.loads(response)
             response = format_riddle(response)
         except Exception as e:
             logger.error(f"Failed to parse response as json: {e}")
-            
+            print(response)
+        
+        if task_id and session_id:
+            response = f"Task ID: {task_id}, Session ID: {session_id}\n{response}"
+
         chat_history_display = chat_history + [[user_message, response]]
         yield "", chat_history_display
 
