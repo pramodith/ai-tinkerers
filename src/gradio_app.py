@@ -102,6 +102,11 @@ async def stream_chatbot_fn(message):
         ):
             yield partial_response
 
+def format_riddle(riddles: list):
+    formatted_responses = ""
+    for riddle, answer, hint in zip(riddles["riddles"], riddles["answers"], riddles["hints"]):
+        formatted_responses += f"{riddle}\nAnswer: {answer}\nHint: {hint}\n\n"
+    return formatted_responses.rstrip()
 
 with gr.Blocks() as demo:
     gr.Markdown("# AI Chatbot (GPT-4.1-nano)\nAsk anything, or request a riddle!")
@@ -119,18 +124,21 @@ with gr.Blocks() as demo:
                     response += partial_response
                     chat_history_display = chat_history + [[user_message, response]]
                     yield "", chat_history_display
-            # Optionally, yield the final cleaned-up response one last time
-            response = response.strip()
-            response = json.dumps(response, indent=2)
-            chat_history_display = chat_history + [[user_message, response]]
-            yield "", chat_history_display
+            
         else:
             response, task_id, session_id = await chatbot_fn(user_message, chat_history)
             if task_id and session_id:
                 response = f"Task ID: {task_id}, Session ID: {session_id}\n{response}"
 
-        chat_history = chat_history + [[user_message, response]]
-        yield "", chat_history
+        try:
+            response = response.strip()
+            response = json.loads(response)
+            response = format_riddle(response)
+        except Exception as e:
+            logger.error(f"Failed to parse response as json: {e}")
+            
+        chat_history_display = chat_history + [[user_message, response]]
+        yield "", chat_history_display
 
     msg.submit(respond, [msg, chatbot, do_stream], [msg, chatbot])
     clear.click(lambda: ("", []), None, [msg, chatbot])
