@@ -12,6 +12,7 @@ from a2a_min.agent_adapter import AgentAdapter
 import asyncio
 import httpx
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +35,11 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
         """
         # Add the task to the store
         await self.upsert_task(request.params)
+        print(f"In send task {time.time()}")
         task = await self.update_store(
             request.params.id, TaskStatus(state=TaskState.SUBMITTED), None
         )
-
+        print(f"In send task {self.tasks}")
         # Non-blocking call to start the task
         asyncio.create_task(self.start_task(request))
         return SendTaskResponse(id=request.id, result=task)
@@ -59,7 +61,7 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
         
         # Call the agent's invoke method
         try:
-            agent_result = self.agent.invoke(query, request.params.sessionId)
+            agent_result = await self.agent.invoke(query, request.params.sessionId)
 
             artifact = None
             task_status = None
@@ -108,10 +110,12 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
                 )
     
     async def set_push_notification_info(self, task_id: str, notification_config: PushNotificationConfig):
+        print(f"In set push {time.time()}")
         async with self.lock:
-            for _ in range(10):
+            for _ in range(3):
                 task = self.tasks.get(task_id)
                 if task is None:
+                    print(f"Tasks are {self.tasks}")
                     await asyncio.sleep(1)
                 else:
                     break

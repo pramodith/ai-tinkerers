@@ -1,3 +1,4 @@
+from a2a_min.client import TaskQueryParams
 import uvicorn
 from fastapi import FastAPI, Request
 from a2a_min_subscribe_client import A2aMinSubscribeClient
@@ -30,6 +31,8 @@ async def start_client():
     logger.info("Client connected to server")
     task_id = await client.send_message("Hello, Echo Agent!")
     logger.info(f"Task ID: {task_id}")
+    await asyncio.sleep(2)
+
     push_notification_config = TaskPushNotificationConfig(
         id=task_id, pushNotificationConfig=PushNotificationConfig(url=NOTIFY_URL)
     )

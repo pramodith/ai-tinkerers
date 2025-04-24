@@ -5,6 +5,11 @@ from a2a_min_subscribe_task_manager import A2aMinSubscribeTaskManager
 
 from typing import Optional, List
 import time
+import logging
+import asyncio
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class A2AMinSubscribeServer(A2aMinServer):
     """
@@ -53,9 +58,9 @@ class A2AMinSubscribeServer(A2aMinServer):
 class EchoAgent(AgentAdapter):
     """A simple echo agent that repeats the user's message"""
 
-    def invoke(self, query: str, session_id: str) -> AgentInvocationResult:
+    async def invoke(self, query: str, session_id: str) -> AgentInvocationResult:
         """Echo back the user's query."""
-        time.sleep(10)
+        await asyncio.sleep(10)
         return AgentInvocationResult.agent_msg(f"Echo: {query}")
 
 
