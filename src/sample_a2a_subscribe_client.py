@@ -7,6 +7,7 @@ import threading
 import time
 import asyncio
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO)  # or INFO, or ERROR
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ app = FastAPI()
 @app.post("/notify")
 async def notify(request: Request):
     data = await request.json()
-    print(f"Received notification: {data}")
+    print(f"Received notification: {json.dumps(data, indent=4)}")
     return {"status": "received"}
 
 
