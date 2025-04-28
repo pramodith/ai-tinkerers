@@ -1,19 +1,19 @@
 from crewai import Agent, Crew, LLM, Task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AINewsHeadlines(BaseModel):
-    headlines: list[str]
-    descriptions: list[str]
-    dates: list[str]
+    headlines: list[str] = Field(description="List of headlines")
+    descriptions: list[str] = Field(description="List of descriptions")
+    dates: list[str] = Field(description="List of dates")
 
 
 class AINewsRiddle(BaseModel):
-    riddles: list[str]
-    answers: list[str]
-    hints: list[str]
+    riddles: list[str] = Field(description="List of riddles")
+    answers: list[str] = Field(description="List of answers")
+    hints: list[str] = Field(description="List of hints")
 
 
 class AINewsRiddleAgent:

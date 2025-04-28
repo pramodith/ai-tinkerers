@@ -94,6 +94,13 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
             raise ValueError(f"Error invoking agent: {e}")
 
     async def send_notification(self, task_id: str, artifact: Artifact):
+        """
+        Send a notification update to the client for a given task.
+
+        Args:
+            task_id (str): The ID of the task to send a notification for.
+            artifact (Artifact): The artifact to send in the notification.
+        """
         notif_config = await self.get_push_notification_info(task_id)
         url = notif_config.url
         # Send a push notification to the user
@@ -110,6 +117,13 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
                 )
     
     async def set_push_notification_info(self, task_id: str, notification_config: PushNotificationConfig):
+        """
+        Set the push notification information for a given task.
+
+        Args:
+            task_id (str): The ID of the task to set push notification info for.
+            notification_config (PushNotificationConfig): The notification configuration to set.
+        """
         print(f"In set push {time.time()}")
         async with self.lock:
             for _ in range(3):
@@ -128,6 +142,15 @@ class A2aMinSubscribeTaskManager(A2aMinTaskManager):
         return
 
     async def get_push_notification_info(self, task_id: str) -> PushNotificationConfig:
+        """
+        Get the push notification information for a given task.
+
+        Args:
+            task_id (str): The ID of the task to get push notification info for.
+
+        Returns:
+            PushNotificationConfig: The push notification configuration for the task.
+        """
         async with self.lock:
             for _ in range(3):
                 task = self.tasks.get(task_id)

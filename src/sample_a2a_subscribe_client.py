@@ -32,8 +32,11 @@ async def start_client():
     logger.info("Client connected to server")
     task_id = await client.send_message("Hello, Echo Agent!")
     logger.info(f"Task ID: {task_id}")
+
+    # Wait for a bit for the task to be created
     await asyncio.sleep(2)
 
+    # Send the notification callback to the server
     push_notification_config = TaskPushNotificationConfig(
         id=task_id, pushNotificationConfig=PushNotificationConfig(url=NOTIFY_URL)
     )

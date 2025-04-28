@@ -50,7 +50,12 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
         ]
 
     def get_agent_card(self, url: str = "http://localhost:8000/") -> AgentCard:
-        """Generate an agent card for this agent."""
+        """
+        Generate an agent card for this agent.
+        
+        Args:
+            url: The URL of the server pointing to the agent.
+        """
         return AgentCard(
             authentication=None,
             name=self.name,
@@ -65,6 +70,13 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
         )
 
     def invoke(self, query: str, session_id: str) -> AgentInvocationResult:
+        """
+        Run the agent
+
+        Args:
+            query: The user's query.
+            session_id: A unique identifier for the session.
+        """
         self.agent.llm.stream = False
         response = self.agent.crew.kickoff({"topic": query})
         agent_response = AgentInvocationResult.agent_msg(
@@ -73,6 +85,12 @@ class AINewsRiddleAgentAdapter(AgentAdapter):
         return agent_response
 
     async def async_invoke(self, query: str) -> AgentInvocationResult:
+        """
+        Async execution of the agent
+
+        Args:
+            query: The user's query.
+        """
         return await self.agent.crew.kickoff_async({"topic": query})
 
     async def stream(self, query: str, session_id: str):

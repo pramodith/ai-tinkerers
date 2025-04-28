@@ -14,6 +14,10 @@ class AINewsRiddleClient(A2aMinClient):
     """
 
     def __init__(self, url: str):
+        """
+        Args:
+            url: The URL of the server pointing to the agent.
+        """
         super().__init__(url)
 
     async def send_message_streaming(
